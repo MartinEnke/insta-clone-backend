@@ -12,3 +12,4 @@ const taggedService = (fastify: FastifyInstance) => {
 };
 
 export { taggedService };
+
