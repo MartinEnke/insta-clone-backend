@@ -1,22 +1,36 @@
 import type { FastifyInstance } from "fastify";
-import type { CreatePostDto, Post } from "./posts.types";
+import { fileStorageService } from "../../common/file-storage.service"; // Import the new service
 
-const postsService = (fastify: FastifyInstance) => {
+type CreatePostData = {
+  img_url: string; // This will now come from our storage service
+  caption: string;
+};
+
+type CreatePostServiceArgs = {
+  caption: string;
+  imageFile?: { buffer: Buffer; filename: string }; // New optional image file
+};
+
+export const postsService = (fastify: FastifyInstance) => {
   return {
-    create: async (postData: CreatePostDto): Promise<Post> => {
-      fastify.log.info("Creating a new post");
-      // This will use the MOCK `transactions` in our test,
-      // and the REAL `transactions` in our live application.
-      const post = fastify.transactions.posts.create(postData);
-      return post as Post;
-    },
+    create: async (data: CreatePostServiceArgs) => {
+      fastify.log.info(`Creating a new post`);
 
-    getAll: async (): Promise<Post[]> => {
-      fastify.log.info("Fetching all posts");
-      const posts = fastify.transactions.posts.getAll();
-      return posts as Post[];
+      let img_url = data.caption; // Fallback if no image, or placeholder
+
+      if (data.imageFile) {
+        // If an image is provided, save it and get the URL
+        img_url = await fileStorageService.saveImage(
+          data.imageFile.buffer,
+          data.imageFile.filename,
+        );
+      }
+
+      const post = fastify.transactions.posts.create({
+        img_url,
+        caption: data.caption,
+      });
+      return post;
     },
   };
 };
-
-export { postsService };
