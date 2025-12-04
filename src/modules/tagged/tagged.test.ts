@@ -34,8 +34,13 @@ describe("GET /tagged/grid", () => {
         getAll: jest.fn(),
       },
       tagged: {
-        getGrid: jest.fn().mockReturnValue(mockTaggedPosts),
         create: jest.fn(),
+        getGrid: jest.fn().mockReturnValue(mockTaggedPosts),
+      },
+      highlights: {
+        create: jest.fn(),
+        getById: jest.fn(),
+        getAll: jest.fn(),
       },
     });
 
