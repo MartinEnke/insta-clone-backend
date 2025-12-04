@@ -1,23 +1,28 @@
-# Getting Started with [Fastify-CLI](https://www.npmjs.com/package/fastify-cli)
-This project was bootstrapped with Fastify-CLI.
+## Progress
 
-## Available Scripts
+### Day 1 – Posts (Backend)
+- Set up Fastify + TypeScript project
+- Added SQLite database integration
+- Implemented `POST /posts` to create a post
+- Wrote integration tests for the posts module using Jest + Fastify `inject`
 
-In the project directory, you can run:
+### Day 2 – Posts & Reels
+- Added `GET /posts` endpoint to return all posts
+- Implemented full `reels` module:
+  - SQLite `reels` table
+  - Service + routes
+  - `GET /reels/grid` endpoint
+- Covered posts + reels with integration tests (TDD)
 
-### `npm run dev`
-
-To start the app in dev mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-### `npm start`
-
-For production mode
-
-### `npm run test`
-
-Run the test cases.
-
-## Learn More
-
-To learn Fastify, check out the [Fastify documentation](https://fastify.dev/docs/latest/).
+### Day 3 – Tagged & Highlights
+- Implemented `tagged` module:
+  - `tagged_posts` table
+  - Transactions for tagged grid
+  - `GET /tagged/grid` endpoint
+  - Integration test for `/tagged/grid` with mocked transactions
+- Implemented `highlights` module:
+  - `highlights` table
+  - Transactions for list + detail
+  - `GET /highlights` and `GET /highlights/:id`
+  - Integration tests for both endpoints
+- Centralized DB access through `database.plugin.ts` + `database.transactions.ts`
