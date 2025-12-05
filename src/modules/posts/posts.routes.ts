@@ -1,26 +1,33 @@
+// src/modules/posts/posts.routes.ts
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import { postsService } from "./posts.service";
-import { z } from "zod"; // Import Zod for validation
+import { z } from "zod";
 
-// Define a Zod schema for the expected form fields
+// Validation for caption (file is handled separately)
 const createPostSchema = z.object({
   caption: z.string().min(1, "Caption cannot be empty.").optional(),
-  // The image will be handled as a file stream/buffer, not directly in the JSON body.
-  // So, we don't define it here for Zod's parsing of the JSON body,
-  // but rather access it from the multipart request.
 });
 
 const postsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   const service = postsService(fastify);
 
+  //
+  // ⭐️ RESTORED ROUTE — used by frontend profile.posts.grid.tsx
+  //
+  fastify.get("/posts", async (_request, reply) => {
+    const posts = fastify.transactions.posts.getAll(); // ← your DB API
+    return reply.send(posts);
+  });
+
+  //
+  // ⭐️ Day 4: POST /posts (multipart)
+  //
   fastify.post("/posts", async (request, reply) => {
-    // Ensure the request is multipart
     if (!request.isMultipart()) {
-      reply.code(415).send({ message: "Request must be multipart" });
-      return;
+      return reply.code(415).send({ message: "Request must be multipart" });
     }
 
-    const parts = request.parts(); // Get the multipart parts
+    const parts = request.parts();
 
     let caption: string | undefined;
     let imageFile: { buffer: Buffer; filename: string } | undefined;
@@ -31,7 +38,6 @@ const postsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           caption = part.value as string;
         }
       } else if (part.type === "file") {
-        // Read the file stream into a buffer
         const buffers: Buffer[] = [];
         for await (const chunk of part.file) {
           buffers.push(chunk);
@@ -43,7 +49,6 @@ const postsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       }
     }
 
-    // Basic validation (can be enhanced with Zod for fields if not using streams)
     if (!imageFile && !caption) {
       return reply
         .code(400)
@@ -51,14 +56,13 @@ const postsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     }
 
     try {
-      // We can still validate the caption if it exists
       if (caption) {
         createPostSchema.pick({ caption: true }).parse({ caption });
       }
 
       const newPost = await service.create({
-        caption: caption || "", // Pass empty string if no caption, or adjust logic
-        imageFile: imageFile,
+        caption: caption || "",
+        imageFile,
       });
 
       return reply.code(201).send(newPost);
@@ -72,8 +76,6 @@ const postsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       return reply.code(500).send({ message: "Failed to create post" });
     }
   });
-
-  // ... (existing GET /posts route and any other routes)
 };
 
 export { postsRoutes };

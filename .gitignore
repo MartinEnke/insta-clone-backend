@@ -60,3 +60,5 @@ profile*
 
 database.db
 *.db
+
+public/uploads/
